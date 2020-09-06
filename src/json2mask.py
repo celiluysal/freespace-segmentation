@@ -15,7 +15,8 @@ class image:
     def __init__(self, width, height, points, name):
         self.width = width
         self.height = height
-        self.points = points
+        self.points = []
+        self.points.append(points)
         self.name = name
 
 for file_name in file_names:
@@ -25,21 +26,29 @@ for file_name in file_names:
     width = json_dict["size"]["width"]
     height = json_dict["size"]["height"]
     json_objs = json_dict["objects"]
+    fs_count = 0
     
     for obj in json_objs:
         if obj["classTitle"] == "Freespace":
+            fs_count += 1
             points = obj["points"]["exterior"]
             img = image(width, height, points, file_name)
-            images.append(img)
-
-for image in images:
-    draw_and_save_filledPolygon(image.width, image.height, image.points, image.name)
-
-## draw filled polygon width, height, points, name
-def draw_and_save_filledPolygon(_width, _height, _points, _name):
-    mask = np.zeros((_width, _height, 3), np.uint8)
-    pts = np.array(_points, np.int32)
-    pts = pts.reshape((-1,1,2))
+            if(fs_count > 1):
+                print(file_name)
+                img.points.append(points)
+    images.append(img)
+            
+def draw_and_save_filledPolygon(_image:image):
+    mask = np.zeros((_image.width, _image.height, 3), np.uint8)
     
-    cv2.fillPoly(mask,[pts],(255,255,255))
-    cv2.imwrite(join(MASK_DIR,_name+".png"),mask)
+    points_list = _image.points
+    for points in points_list:
+        pts = np.array(points, np.int32)
+        pts = pts.reshape((-1,1,2))
+        cv2.fillPoly(mask,[pts],(255,255,255))
+    
+    cv2.imwrite(join(MASK_DIR,_image.name+".png"),mask)
+
+#for image in images:
+#    draw_and_save_filledPolygon(image)
+
