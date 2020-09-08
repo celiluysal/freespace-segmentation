@@ -4,6 +4,7 @@ import numpy as np
 import json
 import os
 import cv2
+import re
         
 images = []
 JSON_DIR = "../data/jsons"
@@ -18,6 +19,11 @@ class image:
         self.points = []
         self.points.append(points)
         self.name = name
+        
+def clean_TypeName(_name):
+    pattern = r'\..*'
+    name = re.sub(pattern, '', _name)
+    return name
 
 for file_name in file_names:
     json_path = os.path.join(JSON_DIR, file_name)
@@ -32,11 +38,13 @@ for file_name in file_names:
         if obj["classTitle"] == "Freespace":
             fs_count += 1
             points = obj["points"]["exterior"]
-            img = image(width, height, points, file_name)
+            name = clean_TypeName(file_name)
+            img = image(width, height, points, name)
             if(fs_count > 1):
-                print(file_name)
+                print(name)
                 img.points.append(points)
     images.append(img)
+
             
 def draw_and_save_filledPolygon(_image:image):
     mask = np.zeros((_image.width, _image.height, 3), np.uint8)
@@ -47,7 +55,7 @@ def draw_and_save_filledPolygon(_image:image):
         pts = pts.reshape((-1,1,2))
         cv2.fillPoly(mask,[pts],(255,255,255))
     
-    cv2.imwrite(join(MASK_DIR,_image.name+".png"),mask)
+    cv2.imwrite(join(MASK_DIR,_image.name+"_mask.png"),mask)
 
 #for image in images:
 #    draw_and_save_filledPolygon(image)
