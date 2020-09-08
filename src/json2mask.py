@@ -35,25 +35,25 @@ class ImageMask(object):
         self.name = clean_TypeName(name)
         
     
-
-for file_name in json_file_names:
-    json_path = os.path.join(JSON_DIR, file_name)
-    json_file = open(json_path, 'r')
-    json_dict = json.load(json_file)
-    width = json_dict["size"]["width"]
-    height = json_dict["size"]["height"]
-    json_objs = json_dict["objects"]
-    fs_count = 0
-    
-    for obj in json_objs:
-        if obj["classTitle"] == "Freespace":
-            fs_count += 1
-            points = obj["points"]["exterior"]
-            img = ImageMask(width, height, points, file_name)
-            if(fs_count > 1):
-                print(img.name)
-                img.points.append(points)
-    image_mask_list.append(img)
+def read_jsons():
+    for file_name in json_file_names:
+        json_path = os.path.join(JSON_DIR, file_name)
+        json_file = open(json_path, 'r')
+        json_dict = json.load(json_file)
+        width = json_dict["size"]["width"]
+        height = json_dict["size"]["height"]
+        json_objs = json_dict["objects"]
+        fs_count = 0
+        
+        for obj in json_objs:
+            if obj["classTitle"] == "Freespace":
+                fs_count += 1
+                points = obj["points"]["exterior"]
+                img = ImageMask(width, height, points, file_name)
+                if(fs_count > 1):
+                    print(img.name)
+                    img.points.append(points)
+        image_mask_list.append(img)
 
             
 def draw_and_save_filledPolygon(_ImageMask:ImageMask):
@@ -84,18 +84,17 @@ def draw_and_save_filledPolygon_onImage(_ImageMask:ImageMask, _file_name):
         opacity = 0.3
         cv2.addWeighted(copy_png,opacity,png,1-opacity,0,png)
     cv2.imwrite(join(MASK_IMG_DIR,_ImageMask.name+"masked_image.png"),png)
-#    cv2.imshow("image",png)
-#    cv2.waitKey(0)
-#    cv2.destroyAllWindows()
 
-image_file_names.sort()
-for file_name in image_file_names:
-    for image_mask in image_mask_list:
-        name = clean_TypeName(file_name)
-        if(image_mask.name == name):
-            draw_and_save_filledPolygon_onImage(image_mask, file_name)
-            break
+
             
-
+#read_jsons()
 #for ImageMask in image_mask_list:
 #    draw_and_save_filledPolygon(ImageMask)
+
+#image_file_names.sort()
+#for file_name in image_file_names:
+#    for image_mask in image_mask_list:
+#        name = clean_TypeName(file_name)
+#        if(image_mask.name == name):
+#            draw_and_save_filledPolygon_onImage(image_mask, file_name)
+#            break
