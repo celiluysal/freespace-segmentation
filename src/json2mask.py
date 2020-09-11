@@ -17,6 +17,9 @@ MASK_IMG_DIR = "../data/masked_images"
 json_file_names = [f for f in listdir(JSON_DIR) if isfile(join(JSON_DIR, f))]
 image_file_names = [f for f in listdir(IMG_DIR) if isfile(join(IMG_DIR, f))]
 
+print("seea")
+
+
 def clean_TypeName(_name):
         pattern = r'\..*'
         name = re.sub(pattern, '', _name)

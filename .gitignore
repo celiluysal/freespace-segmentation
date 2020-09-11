@@ -1,5 +1,2 @@
-data/jsons
-data/masks
-data/images
-data/masked_images
+data
 venv/
