@@ -26,10 +26,6 @@ def clean_TypeName(_name):
         return name
 
 class ImageMask(object):
-    def __init__(self, label=None):
-        self.label = label
-        self.parent = None
-        self.children = []
     def __init__(self, width, height, points, name):
         self.width = width
         self.height = height
