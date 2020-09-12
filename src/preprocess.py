@@ -58,7 +58,6 @@ def tensorize_mask(mask_path, output_shape):
     batch_masks = np.array(batch_masks)
     mask_tensor = torch.Tensor(batch_masks)
     mask_tensor = mask_tensor.unsqueeze(3)
-    print(mask_tensor)
     #[4765, 20, 20] [B,W,H] channel sayısı = 2 gösteremedim
     print(mask_tensor.shape) 
 
