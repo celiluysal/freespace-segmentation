@@ -4,63 +4,76 @@ from os.path import isfile, join
 import numpy as np
 import cv2
 from torchvision import transforms, utils
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder
 import torch
+import  glob
 
-#MASK_DIR = "../data/masks"
-#IMG_DIR = "../data/images"
-IMG_DIR = "../data/test_images"
-MASK_DIR = "../data/test_masks"
 
-image_file_names = [f for f in listdir(IMG_DIR) if isfile(join(IMG_DIR, f))]
-mask_file_names = [f for f in listdir(MASK_DIR) if isfile(join(MASK_DIR, f))]
+
 
 def tensorize_image(image_path, output_shape):
     batch_images = []
     for file_name in image_path:
         os_image_path = os.path.join(IMG_DIR, file_name)
         img = cv2.imread(os_image_path)
+        img = cv2.resize(img,output_shape)
+        batch_images.append(img)
 
-        copy_img = img.copy() 
-        copy_img = cv2.resize(img,output_shape)
-        batch_images.append(copy_img)
-
-        
     batch_images = np.array(batch_images)
-    image_tensor = torch.Tensor(batch_images)
+    torch_image = torch.from_numpy(batch_images)
+    image_tensor = torch_image#= torch_image.cuda()
+    return image_tensor 
     #[4765, 20, 20, 3] [B,W,H,C]
-    print(image_tensor.shape)
+    
 
 
-def tensorize_mask(mask_path, output_shape):
+def tensorize_mask(mask_path, output_shape ,n_class):
     batch_masks = list()
     for file_name in mask_path:
         os_mask_path = os.path.join(MASK_DIR, file_name)
         mask = cv2.imread(os_mask_path, cv2.IMREAD_GRAYSCALE)
-
-        copy_mask = mask.copy() 
-        copy_mask = cv2.resize(mask, output_shape)
+        mask = cv2.resize(mask, output_shape)
 
 
-        # ?? emin değilim
-        #encoder = OneHotEncoder()
-        #encoder.fit(copy_mask)
-        #encoded = encoder.fit_transform(copy_mask)
-        #print(encoded.size)
-        #print("encoded", encoded.shape)
-
-        copy_mask = np.asarray(copy_mask) / 255
-
-        batch_masks.append(copy_mask)
+        mask = np.asarray(mask) / 255
+        batch_masks.append(mask)
 
     #batch_masks = np.vstack(batch_masks)   
     batch_masks = np.array(batch_masks)
-    mask_tensor = torch.Tensor(batch_masks)
+    mask_tensor = torch.from_numpy(batch_masks)
     mask_tensor = mask_tensor.unsqueeze(3)
     #[4765, 20, 20] [B,W,H] channel sayısı = 2 gösteremedim
-    print(mask_tensor.shape) 
+    return mask_tensor
 
-tensorize_image(image_file_names,(20,20))
-print("------------")    
-tensorize_mask(mask_file_names ,(20,20))
+
+def one_hot_encode(data, n_class):
+    encoded_data = np.zeros((*data.shape, n_class), dtype=np.int) # (width, height, number_of_class)'lık bir array tanımlıyorum.
+    encoded_labels = [0] * n_class # buraya da [0, 0, .., 0] (n tane 0) bir encoded_labels, bizim durumumuz için [0, 0] oluyor bu (n=2)
+    for lbl in range(n_class):
+        encoded_labels[lbl] = 1 # lbl = 0 için (arkaplan) [1, 0] labelini oluşturuyorum, 
+                                # lbl = 1 için (freespace) [0, 1] labelini oluşturuyorum.
+        numerical_class_inds = data[:,:] == lbl # lbl = 0 için data'nın 0'a eşit olduğu w,h ikililerini alıyorum diyelim ki (F).
+                                                # lbl = 1 için data'nın 1'e eşit olduğu w,h ikililerini alıyorum diyelim ki (O).
+        encoded_data[numerical_class_inds] = encoded_labels # lbl = 0 için tüm F'in sahip olduğu tüm w,h ikililerini [1, 0]'a eşitliyorum.
+                                                            # lbl = 1 için tüm O'un sahip olduğu tüm w,h ikililerini [0, 1]'e eşitliyorum.
+    return encoded_data
+
+
+if __name__ == '__main__':
+    #MASK_DIR = "../data/masks"
+    #IMG_DIR = "../data/images"
+    IMG_DIR = "../data/test_images"
+    MASK_DIR = "../data/test_masks"
+    
+    image_file_names = glob.glob(IMG_DIR + "/*")
+    image_file_names.sort()
+    batch_image_list = image_file_names[:5] #first n
+    batch_image_tensor = tensorize_image(batch_image_list, (20,20))
+    
+    #print(batch_image_tensor.shape)
+    #print("------------")    
+    
+    mask_file_names = glob.glob(MASK_DIR + "/*")
+    mask_file_names.sort()
+    batch_mask_list = mask_file_names[:5] #first n
+    batch_mask_tensor = tensorize_mask(batch_mask_list, (20,20), 2)
+    #print(batch_maks_tensor.shape)
