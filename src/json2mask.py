@@ -17,8 +17,6 @@ MASK_IMG_DIR = "../data/masked_images"
 json_file_names = [f for f in listdir(JSON_DIR) if isfile(join(JSON_DIR, f))]
 image_file_names = [f for f in listdir(IMG_DIR) if isfile(join(IMG_DIR, f))]
 
-print("seea")
-
 
 def clean_TypeName(_name):
         pattern = r'\..*'
@@ -50,7 +48,6 @@ def read_jsons():
                 points = obj["points"]["exterior"]
                 img = ImageMask(width, height, points, file_name)
                 if(fs_count > 1):
-                    print(img.name)
                     img.points.append(points)
         image_mask_list.append(img)
 
@@ -78,7 +75,6 @@ def draw_and_save_filledPolygon_onImage(_ImageMask:ImageMask, _file_name):
         pts = np.array(points, np.int32)
         pts = pts.reshape((-1,1,2))
         green = (153,255,51)
-        purple = (204,0,255)
         cv2.fillPoly(copy_png,[pts],green)
         opacity = 0.3
         cv2.addWeighted(copy_png,opacity,png,1-opacity,0,png)
@@ -86,12 +82,12 @@ def draw_and_save_filledPolygon_onImage(_ImageMask:ImageMask, _file_name):
 
 
             
-#read_jsons()
-#for ImageMask in image_mask_list:
-#    draw_and_save_filledPolygon(ImageMask)
+# read_jsons()
+# # for ImageMask in image_mask_list:
+# #    draw_and_save_filledPolygon(ImageMask)
 
-#image_file_names.sort()
-#for file_name in image_file_names:
+# image_file_names.sort()
+# for file_name in image_file_names:
 #    for image_mask in image_mask_list:
 #        name = clean_TypeName(file_name)
 #        if(image_mask.name == name):
