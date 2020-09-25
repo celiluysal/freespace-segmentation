@@ -17,11 +17,10 @@ MASK_IMG_DIR = "../data/masked_images"
 json_file_names = [f for f in listdir(JSON_DIR) if isfile(join(JSON_DIR, f))]
 image_file_names = [f for f in listdir(IMG_DIR) if isfile(join(IMG_DIR, f))]
 
-
 def clean_TypeName(_name):
-        pattern = r'\..*'
-        name = re.sub(pattern, '', _name)
-        return name
+    pattern = r"\.[0-9a-z].*"
+    name = re.sub(pattern, '', _name)
+    return name
 
 class ImageMask(object):
     def __init__(self, width, height, points, name):
@@ -46,9 +45,11 @@ def read_jsons():
             if obj["classTitle"] == "Freespace":
                 fs_count += 1
                 points = obj["points"]["exterior"]
-                img = ImageMask(width, height, points, file_name)
                 if(fs_count > 1):
                     img.points.append(points)
+                else:
+                    img = ImageMask(width, height, points, file_name)
+
         image_mask_list.append(img)
 
             
@@ -62,8 +63,7 @@ def draw_and_save_filledPolygon(_ImageMask:ImageMask):
         cv2.fillPoly(mask,[pts],(255,255,255))
     
     cv2.imwrite(join(MASK_DIR,_ImageMask.name+"_mask.png"),mask)
-    
-      
+        
     
 def draw_and_save_filledPolygon_onImage(_ImageMask:ImageMask, _file_name):
     image_path = os.path.join(IMG_DIR, _file_name)
@@ -80,11 +80,10 @@ def draw_and_save_filledPolygon_onImage(_ImageMask:ImageMask, _file_name):
         cv2.addWeighted(copy_png,opacity,png,1-opacity,0,png)
     cv2.imwrite(join(MASK_IMG_DIR,_ImageMask.name+"masked_image.png"),png)
 
-
             
-# read_jsons()
-# # for ImageMask in image_mask_list:
-# #    draw_and_save_filledPolygon(ImageMask)
+read_jsons()
+for ImageMask in image_mask_list:
+   draw_and_save_filledPolygon(ImageMask)
 
 # image_file_names.sort()
 # for file_name in image_file_names:
