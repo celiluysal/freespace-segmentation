@@ -62,7 +62,7 @@ def draw_and_save_filledPolygon(_ImageMask:ImageMask):
         pts = pts.reshape((-1,1,2))
         cv2.fillPoly(mask,[pts],(255,255,255))
     
-    cv2.imwrite(join(MASK_DIR,_ImageMask.name+"_mask.png"),mask)
+    cv2.imwrite(join(MASK_DIR,_ImageMask.name+".png"),mask)
         
     
 def draw_and_save_filledPolygon_onImage(_ImageMask:ImageMask, _file_name):
