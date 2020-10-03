@@ -19,7 +19,7 @@ def tensorize_image(image_path, output_shape, cuda=False):
 
         batch_images.append(torchlike_image)
 
-    batch_images = np.array(batch_images)
+    batch_images = np.array(batch_images, dtype=np.float32)
     torch_image = torch.from_numpy(batch_images).float()
     if cuda:
         torch_image = torch_image.cuda()
@@ -31,9 +31,9 @@ def tensorize_mask(mask_path, output_shape ,n_class, cuda=False):
     batch_masks = list()
     for file_name in mask_path:
         # print("file", file_name)
-        mask = cv2.imread(file_name, cv2.IMREAD_GRAYSCALE)
+        mask = cv2.imread(file_name, 0)
         mask = cv2.resize(mask, output_shape)
-        mask = mask / 255
+        # mask = mask / 255
         encoded_mask = one_hot_encoder(mask, n_class)  
         # print(encoded_mask.shape)
         torchlike_mask = torchlike_data(encoded_mask) #[C,W,H]
@@ -87,13 +87,15 @@ def decode_and_convert_image(data, n_class):
         for i in range(len(tensor[0])):
             for j in range(len(tensor[1])):
                 if (tensor[1][i,j] == 0):
-                    decoded_data[i, j] = 0
-                else: #(tensor[1][i,j] == 1):
                     decoded_data[i, j] = 255
-        print(decoded_data)
-        image = Image.fromarray(np.uint8(decoded_data), "L")
+                else: #(tensor[1][i,j] == 1):
+                    decoded_data[i, j] = 0
+        # print(decoded_data)
+        
         # image.show()
-        decoded_data_list.append(image)
+        # plt.imshow(decoded_data, cmap="gray")
+        # plt.show()
+        decoded_data_list.append(decoded_data)
     
     # decoded_data_list[0].show() 
 
@@ -133,28 +135,17 @@ if __name__ == '__main__':
     mask_file_names.sort()
     batch_mask_list = mask_file_names[:2] #first n
     batch_mask_tensor = tensorize_mask(batch_mask_list, (224,224), 2)
-
     
+    # print(batch_mask_tensor.dtype)
+    # print(type(batch_mask_tensor))
+    # print(batch_mask_tensor.shape)  
+
     image_list = decode_and_convert_image(batch_mask_tensor,2)
-    print(type(image_list[0]))
     img = image_list[0]
+    print(type(img))
+    print(img.shape)
     plt.imshow(img, cmap="gray")
     plt.show()
 
-    # batch_mask_tensor = batch_mask_tensor.permute(0, 3, 2, 1) # from NHWC to NCHW  
-    # plt.imshow(batch_mask_tensor.permute(1, 2, 0))
-    # print("asd",batch_mask_tensor[0].shape)
-    # mask_tensor = batch_mask_tensor[0]
-    # print("mask tensor ", mask_tensor.shape)
-    # mask_tensor = mask_tensor.permute(1, 2, 0).numpy()
-    # print("mask tensor ", mask_tensor.shape)
-    # print("mask tensor type", type(mask_tensor))
-    # print(mask_tensor)
-    # plt.imshow(mask_tensor, cmap=plt.cm.gray)
-    
-    
-    print(batch_mask_tensor.dtype)
-    print(type(batch_mask_tensor))
-    print(batch_mask_tensor.shape)  
 
 
