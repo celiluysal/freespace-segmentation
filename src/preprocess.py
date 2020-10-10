@@ -11,12 +11,14 @@ from PIL import Image
 MASK_DIR = "../data/test_masks"
 IMG_DIR = "../data/test_images"
 
-def tensorize_image(image_path, output_shape, cuda=False):
+def tensorize_image(image_path, output_shape, cuda=False, augment=False):
     dataset = list()
-    Transform = T.Compose([
-        T.Resize(output_shape),
-        T.ToTensor(),
-    ])
+    Transform = list()
+    Transform.append(T.Resize(output_shape))
+    if augment:
+        Transform.append(T.ColorJitter(brightness=0.4, contrast=0.4, hue=0.06))
+    Transform.append(T.ToTensor())
+    Transform = T.Compose(Transform)
 
     for file_name in image_path:
         image = Image.open(file_name)
@@ -120,10 +122,10 @@ def image_mask_check(image_path_list, mask_path_list):
 
 if __name__ == '__main__':
     
-    # image_file_names = glob.glob(IMG_DIR + "/*")
-    # image_file_names.sort()
-    # batch_image_list = image_file_names[:3] #first n
-    # batch_image_tensor = tensorize_image(batch_image_list, (224,224))
+    image_file_names = glob.glob(IMG_DIR + "/*")
+    image_file_names.sort()
+    batch_image_list = image_file_names[:16] #first n
+    batch_image_tensor = tensorize_image(batch_image_list, (224,224), augment=True)
     # print(batch_image_tensor[0])
     
     # print(batch_image_tensor.dtype)
@@ -132,9 +134,15 @@ if __name__ == '__main__':
 
     # print(len(batch_image_tensor))
 
-    # for i in range(len(batch_image_tensor)):
+    # plt.figure(figsize=(4,4)) # specifying the overall grid size
+
+    # for i in range(16):
+    #     plt.subplot(4,4,i+1)    # the number of images in the grid is 5*5 (25)
     #     plt.imshow(batch_image_tensor[i].permute(1,2,0))
-    #     plt.show()
+    # plt.show()
+
+    # for i in range(35):
+    #     print("i:",i," - ", 0==i%3)
 
 
     # print("------------")    
