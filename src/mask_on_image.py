@@ -6,7 +6,8 @@ from os.path import isfile, join
 MASK_DIR  = '../data/test_masks'
 IMAGE_DIR = '../data/test_images'
 IMAGE_OUT_DIR = '../data/test_masked_images'
-IMAGE_OUT_DIR2 = '../data/predict_images'
+IMAGE_OUT_DIR2 = '../data/predict3_images'
+# IMAGE_OUT_DIR2 = '../data/predict_images'
 # IMAGE_OUT_DIR = '../data/test_masked_images_224x224'
 
 
@@ -56,34 +57,24 @@ def write_mask_on_image():
             cv2.imshow('o', image)
             cv2.waitKey(1)
 
-def write_mask_on_image2(mask_list, image_file_names, shape):
-    for mask, image_file_name in tqdm.tqdm(zip(mask_list, image_file_names)):
+def write_mask_on_image2(mask_list, image_file_names, shape, save_file_name):
+    save_file_name = "../data/predicts/" + save_file_name
+    if not os.path.exists(save_file_name):
+        os.mkdir(save_file_name)
+
+    for mask, image_file_name in zip(mask_list, image_file_names):
 
         image_path = os.path.join(IMAGE_DIR, image_file_name)
         image = cv2.imread(image_path).astype(np.uint8)
         image = cv2.resize(image, shape)
 
-        # print(image.shape)
         blank_image = np.zeros(image.shape , np.uint8)
-        # print(mask)
-        mask_ind   = mask == 255
-        # print(mask_ind)
+        mask_ind = mask == 255
         blank_image[mask_ind, :] = (0, 255, 0)
         opacity = 0.1
         cv2.addWeighted(blank_image, opacity, image, 1-opacity, 0, image)
         image_name = image_path.split('/')[-1].split('.')[0]
-        cv2.imwrite(join(IMAGE_OUT_DIR2, image_name+".png"), image)
-
-        # cv2.imwrite(join(IMAGE_OUT_DIR2, image_name+".png"), blank_image)
-        if False:
-            cv2.imshow('o', image)
-            cv2.waitKey(1)
-
-
-
-        
-
-
+        cv2.imwrite(join(save_file_name, image_name+".png"), image)
 
 
 if __name__ == '__main__':
