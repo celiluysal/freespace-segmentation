@@ -3,6 +3,7 @@ import cv2
 import torch
 import glob
 import matplotlib.pyplot as plt
+from torchvision import transforms as T
 from PIL import Image
 
 # MASK_DIR = "../data/masks"
@@ -11,43 +12,43 @@ MASK_DIR = "../data/test_masks"
 IMG_DIR = "../data/test_images"
 
 def tensorize_image(image_path, output_shape, cuda=False):
-    batch_images = []
+    dataset = list()
+    Transform = T.Compose([
+        T.Resize(output_shape),
+        T.ToTensor(),
+    ])
+
     for file_name in image_path:
-        img = cv2.imread(file_name, cv2.IMREAD_COLOR)
-        img = cv2.resize(img,output_shape)
-        torchlike_image = torchlike_data(img)
+        image = Image.open(file_name)
+        image = Transform(image)
 
-        batch_images.append(torchlike_image)
+        dataset.append(image)
 
-    batch_images = np.array(batch_images, dtype=np.float32)
-    torch_image = torch.from_numpy(batch_images).float()
+    tensor = torch.stack(dataset)
+
     if cuda:
-        torch_image = torch_image.cuda()
-    return torch_image 
-    #[4765, 20, 20, 3] [B,W,H,C]
+        tensor = tensor.cuda()
+    return tensor
     
 
 def tensorize_mask(mask_path, output_shape ,n_class, cuda=False):
     batch_masks = list()
+
     for file_name in mask_path:
-        # print("file", file_name)
         mask = cv2.imread(file_name, 0)
         mask = cv2.resize(mask, output_shape)
         # mask = mask / 255
         encoded_mask = one_hot_encoder(mask, n_class)  
-        # print(encoded_mask.shape)
         torchlike_mask = torchlike_data(encoded_mask) #[C,W,H]
 
         batch_masks.append(torchlike_mask)      
   
     batch_masks = np.array(batch_masks, dtype=np.int)
-    # print("mask enc batch", batch_masks)
     torch_mask = torch.from_numpy(batch_masks).float()
-    # print("mask torch", torch_mask)
+
     if cuda:
         torch_mask = torch_mask.cuda()
     return torch_mask
-    #[4765, 20, 20, 2] [B,W,H,C] 
 
 def one_hot_encode(data, n_class):
     encoded_data = np.zeros((data.shape[0], data.shape[1], n_class), dtype=np.int)
@@ -103,7 +104,6 @@ def decode_and_convert_image(data, n_class):
     
 
 
-
 def torchlike_data(data):
     n_channels = data.shape[2]
     torchlike_data = np.empty((n_channels, data.shape[0], data.shape[1]))
@@ -122,30 +122,40 @@ if __name__ == '__main__':
     
     # image_file_names = glob.glob(IMG_DIR + "/*")
     # image_file_names.sort()
-    # batch_image_list = image_file_names[:5] #first n
-    # batch_image_tensor = tensorize_image(batch_image_list, (20,20))
+    # batch_image_list = image_file_names[:3] #first n
+    # batch_image_tensor = tensorize_image(batch_image_list, (224,224))
+    # print(batch_image_tensor[0])
     
     # print(batch_image_tensor.dtype)
     # print(type(batch_image_tensor))
     # print(batch_image_tensor.shape)
 
+    # print(len(batch_image_tensor))
+
+    # for i in range(len(batch_image_tensor)):
+    #     plt.imshow(batch_image_tensor[i].permute(1,2,0))
+    #     plt.show()
+
+
     # print("------------")    
     
-    mask_file_names = glob.glob(MASK_DIR + "/*")
-    mask_file_names.sort()
-    batch_mask_list = mask_file_names[:2] #first n
-    batch_mask_tensor = tensorize_mask(batch_mask_list, (224,224), 2)
+    # mask_file_names = glob.glob(MASK_DIR + "/*")
+    # mask_file_names.sort()
+    # batch_mask_list = mask_file_names[:1] #first n
+    # batch_mask_tensor = tensorize_mask(batch_mask_list, (224,224), 2)
     
-    # print(batch_mask_tensor.dtype)
-    # print(type(batch_mask_tensor))
-    # print(batch_mask_tensor.shape)  
+    # # print(batch_mask_tensor.dtype)
+    # # print(type(batch_mask_tensor))
+    # # print(batch_mask_tensor.shape)  
 
-    image_list = decode_and_convert_image(batch_mask_tensor,2)
-    img = image_list[0]
-    print(type(img))
-    print(img.shape)
-    plt.imshow(img, cmap="gray")
-    plt.show()
+    # print(batch_mask_tensor[0])
+
+    # image_list = decode_and_convert_image(batch_mask_tensor,2)
+    # img = image_list[0]
+    # print(type(img))
+    # print(img.shape)
+    # plt.imshow(img, cmap="gray")
+    # plt.show()
 
 
 
