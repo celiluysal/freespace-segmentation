@@ -3,9 +3,12 @@ import numpy as np
 from os import listdir
 from os.path import isfile, join
 
+# MASK_DIR  = '../data/masks'
+# IMAGE_DIR = '../data/images'
+
 MASK_DIR  = '../data/test_masks'
 IMAGE_DIR = '../data/test_images'
-IMAGE_OUT_DIR = '../data/test_masked_images'
+IMAGE_OUT_DIR = '../data/test_masked_images2'
 IMAGE_OUT_DIR2 = '../data/predict3_images'
 # IMAGE_OUT_DIR2 = '../data/predict_images'
 # IMAGE_OUT_DIR = '../data/test_masked_images_224x224'
@@ -46,13 +49,12 @@ def write_mask_on_image():
         # mask = cv2.resize(mask,output_shape)
         # image = cv2.resize(image,output_shape)
 
-        blank_image = np.zeros(image.shape , np.uint8)
+        mask_image = image.copy()
         mask_ind = mask == 1
-        blank_image[mask_ind, :] = (255, 0, 125)
-        opacity = 0.2
-        cv2.addWeighted(blank_image, opacity, image, 1-opacity, 0, image)
+        mask_image[mask_ind, :] = (255, 0, 125)
+        opac_image = (image/2 + mask_image/2).astype(np.uint8)
         
-        cv2.imwrite(join(IMAGE_OUT_DIR, mask_file_name), image)
+        cv2.imwrite(join(IMAGE_OUT_DIR, mask_file_name), opac_image)
         if False:
             cv2.imshow('o', image)
             cv2.waitKey(1)
@@ -67,14 +69,14 @@ def write_mask_on_image2(mask_list, image_file_names, shape, save_file_name):
         image_path = os.path.join(IMAGE_DIR, image_file_name)
         image = cv2.imread(image_path).astype(np.uint8)
         image = cv2.resize(image, shape)
-
-        blank_image = np.zeros(image.shape , np.uint8)
+        
+        mask_image = image.copy()
         mask_ind = mask == 255
-        blank_image[mask_ind, :] = (0, 255, 0)
-        opacity = 0.1
-        cv2.addWeighted(blank_image, opacity, image, 1-opacity, 0, image)
+        mask_image[mask_ind, :] = (102, 204, 102)
+        opac_image = (image/2 + mask_image/2).astype(np.uint8)
+
         image_name = image_path.split('/')[-1].split('.')[0]
-        cv2.imwrite(join(save_file_name, image_name+".png"), image)
+        cv2.imwrite(join(save_file_name, image_name+".png"), opac_image)
 
 
 if __name__ == '__main__':
