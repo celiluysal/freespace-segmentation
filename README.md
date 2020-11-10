@@ -1,1 +1,1 @@
-# freespace-segmentaion
+# freespace-segmentation
